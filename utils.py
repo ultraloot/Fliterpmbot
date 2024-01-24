@@ -53,18 +53,21 @@ class temp(object):
     SHORT = {}
     SETTINGS = {}
 
-async def is_subscribed(bot, query):
-    try:
-        user = await bot.get_chat_member(AUTH_CHANNEL, query.from_user.id)
-    except UserNotParticipant:
-        pass
-    except Exception as e:
-        logger.exception(e)
-    else:
-        if user.status != enums.ChatMemberStatus.BANNED:
-            return True
-
-    return False
+async def is_subscribed(bot, query, channel=AUTH_CHANNEL, creates_join_request=True):
+    if await db.find_join_req(query.from_user.id):
+        return True
+    btn = []
+    for id in channel:
+        chat = await bot.get_chat(id)
+        try:
+            await bot.get_chat_member(id, query.from_user.id)
+        except UserNotParticipant:
+            btn.append(
+                [InlineKeyboardButton(f'Join {chat.title}', url=chat.invite_link)]
+            )
+        except Exception as e:
+            logger.exception(e)
+    return btn
 
 async def get_poster(query, bulk=False, id=False, file=None):
     if not id:
