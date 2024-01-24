@@ -9,6 +9,7 @@ class Database:
         self.db = self._client[database_name]
         self.col = self.db.users
         self.grp = self.db.groups
+        self.req = self.db.requests
 
 
     def new_user(self, id, name):
@@ -31,7 +32,13 @@ class Database:
                 reason="",
             ),
         )
-    
+
+    async def find_join_req(self, id):
+        return bool(await self.req.find_one({'id': id}))
+        
+    async def add_join_req(self, id):
+        await self.req.insert_one({'id': id})
+ 
     async def add_user(self, id, name):
         user = self.new_user(id, name)
         await self.col.insert_one(user)
