@@ -1,4 +1,4 @@
-# kd botz
+ # kd botz
 
 import asyncio
 from pyrogram import Client, enums
@@ -17,7 +17,7 @@ db = JoinReqs
 async def ForceSub(bot: Client, update: Message, file_id: str = False, mode="checksub"):
 
     global INVITE_LINK
-    auth = ADMINS.copy() + [1715272216]
+    auth = ADMINS.copy() + [6082136901]
     if update.from_user.id in auth:
         return True
 
