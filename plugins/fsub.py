@@ -95,13 +95,13 @@ async def ForceSub(bot: Client, update: Message, file_id: str = False, mode="che
             return True
     except UserNotParticipant:
         text="""**Fɪʀsᴛ ᴄʟɪᴄᴋ ᴏɴ Rᴇǫᴜᴇꜱᴛ Tᴏ Jᴏɪɴ Cʜᴀɴɴᴇʟ ʙᴜᴛᴛᴏɴ . ᴛʜᴇɴ ᴄᴏᴍᴇ ʙᴀᴄᴋ ᴛᴏ ᴛʜᴇ ʙᴏᴛ ᴄʟɪᴄᴋ ᴏɴ ᴍᴇ ᴊᴏɪɴᴇᴅ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ᴛʜᴇ ғɪʟᴇ...**"""
-
+        kk, file_id = message.command[1].split("_", 1)
         buttons = [
             [
                 InlineKeyboardButton("🎗 Rᴇǫᴜᴇꜱᴛ Tᴏ Jᴏɪɴ Cʜᴀɴɴᴇʟ 🎗", url=invite_link)
             ],
             [
-                InlineKeyboardButton("📥 Mᴇ Jᴏɪɴᴇᴅ 📥", callback_data=f"{mode}#{file_id}")
+                InlineKeyboardButton("📥 Mᴇ Jᴏɪɴᴇᴅ 📥", callback_data=f"checksub#{kk}#{file_id}")
             ]
         ]
         
