@@ -3,12 +3,13 @@ import logging
 import random
 import asyncio
 from Script import script
+from plugins.fsub import ForceSub
 from pyrogram import Client, filters, enums
 from pyrogram.errors import ChatAdminRequired, FloodWait, ButtonDataInvalid
 from pyrogram.types import *
 from database.ia_filterdb import Media, get_file_details, unpack_new_file_id, get_bad_files
 from database.users_chats_db import db
-from info import CHANNELS, ADMINS, AUTH_CHANNEL, LOG_CHANNEL, PICS, BATCH_FILE_CAPTION, CUSTOM_FILE_CAPTION, PROTECT_CONTENT, CHNL_LNK, GRP_LNK, REQST_CHANNEL, SUPPORT_CHAT_ID, SUPPORT_CHAT, MAX_B_TN, VERIFY, SHORTLINK_API, SHORTLINK_URL, TUTORIAL, IS_TUTORIAL, PREMIUM_USER
+from info import CHANNELS, ADMINS, AUTH_CHANNEL, LOG_CHANNEL, PICS, BATCH_FILE_CAPTION, CUSTOM_FILE_CAPTION, PROTECT_CONTENT, CHNL_LNK, GRP_LNK, REQST_CHANNEL, SUPPORT_CHAT_ID, SUPPORT_CHAT, REQST_CHANNEL, MAX_B_TN, VERIFY, SHORTLINK_API, SHORTLINK_URL, TUTORIAL, IS_TUTORIAL, PREMIUM_USER
 from utils import get_settings, get_size, is_subscribed, save_group_settings, temp, verify_user, check_token, check_verification, get_token, get_shortlink, get_tutorial
 from database.connections_mdb import active_connection
 # from plugins.pm_filter import ENABLE_SHORTLINK
@@ -62,26 +63,10 @@ async def start(client, message):
         )
         return
     
-    btn = await is_subscribed(client, message)
-    mc = message.command[1].split("_", 1)
-    if btn:
-        if mc != 'subscribe':
-            try:
-                btn.append(
-                    [InlineKeyboardButton("↺ Tʀʏ Aɢᴀɪɴ", callback_data=f"checksub#{mc}")]
-                )
-            except ButtonDataInvalid:
-                btn.append(
-                    [InlineKeyboardButton("↺ Tʀʏ Aɢᴀɪɴ", url=f"https://t.me/{temp.U_NAME}?start={mc}")]
-                )
-        await client.send_photo(
-            photo = "https://graph.org/file/2f7b5a8b0d33102d19c8d.jpg",
-            chat_id=message.from_user.id,
-            # text="**You are not in our channel given below so you don't get the movie file...\n\nIf you want the movie file, click on the '🍿ᴊᴏɪɴ ᴏᴜʀ ʙᴀᴄᴋ-ᴜᴘ ᴄʜᴀɴɴᴇʟ🍿' button below and join our back-up channel, then click on the '🔄 Try Again' button below...\n\nThen you will get the movie files...**",
-            caption=script.FORCE_SUB,
-            reply_markup=InlineKeyboardMarkup(btn),
-            parse_mode=enums.ParseMode.MARKDOWN
-            )
+    if len(message.command) == 2 and message.command[1] in ["subscribe", "error", "okay", "help", "start", "hehe"]:
+        if message.command[1] == "subscribe":
+            await ForceSub(client, message)
+
         return
     if len(message.command) == 2 and message.command[1] in ["subscribe", "error", "okay", "help"]:
         buttons = [[
@@ -103,12 +88,18 @@ async def start(client, message):
             parse_mode=enums.ParseMode.HTML
         )
         return
+
+    kk, file_id = message.command[1].split("_", 1) if "_" in message.command[1] else (False, False)
+    pre = ('checksubp' if kk == 'filep' else 'checksub') if kk else False
+
+    status = await ForceSub(client, message, file_id=file_id, mode=pre)
+    if not status:
+        return
+
     data = message.command[1]
-    try:
-        pre, file_id = data.split('_', 1)
-    except:
+    if not file_id:
         file_id = data
-        pre = ""
+
     if data.split("-", 1)[0] == "BATCH":
         sts = await message.reply("<b>Please wait...</b>")
         file_id = data.split("-", 1)[1]
