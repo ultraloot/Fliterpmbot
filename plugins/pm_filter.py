@@ -14,7 +14,7 @@ import pyrogram
 from database.connections_mdb import active_connection, all_connections, delete_connection, if_active, make_active, \
     make_inactive
 from info import ADMINS, AUTH_CHANNEL, AUTH_USERS, SUPPORT_CHAT_ID, CUSTOM_FILE_CAPTION, MSG_ALRT, PICS, AUTH_GROUPS, P_TTI_SHOW_OFF, GRP_LNK, CHNL_LNK, NOR_IMG, LOG_CHANNEL, SPELL_IMG, MAX_B_TN, IMDB, \
-    SINGLE_BUTTON, SPELL_CHECK_REPLY, IMDB_TEMPLATE, NO_RESULTS_MSG, TUTORIAL, REQST_CHANNEL, IS_TUTORIAL, LANGUAGES, SEASONS, SUPPORT_CHAT, PREMIUM_USER
+    SINGLE_BUTTON, SPELL_CHECK_REPLY, IMDB_TEMPLATE, NO_RESULTS_MSG, TUTORIAL, REQST_CHANNEL, IS_TUTORIAL, LANGUAGES, SEASONS, SUPPORT_CHAT, PREMIUM_USER, REQ_CHANNEL
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid
@@ -976,16 +976,34 @@ async def cb_handler(client: Client, query: CallbackQuery):
         await query.answer(url=f"https://telegram.me/{temp.U_NAME}?start=file_{file_id}")
     
     elif query.data.startswith("checksub"):
-        ident, mc = query.data.split("#")
-        btn = await is_subscribed(client, query)
-        if btn:
-            await query.answer(f"Hello {query.from_user.first_name},\nPlease join my updates channel and request again.", show_alert=True)
-            btn.append(
-                [InlineKeyboardButton("↺ Tʀʏ Aɢᴀɪɴ", callback_data=f"pm_checksub#{mc}")]
-            )
-            await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(btn))
+        if (AUTH_CHANNEL or REQ_CHANNEL) and not await is_subscribed(client, query):
+            await query.answer("𝑰 𝑳𝒊𝒌𝒆 𝒀𝒐𝒖𝒓 𝑺𝒎𝒂𝒓𝒕𝒏𝒆𝒔𝒔, 𝑩𝒖𝒕 𝑫𝒐𝒏'𝒕 𝑩𝒆 𝑶𝒗𝒆𝒓𝒔𝒎𝒂𝒓𝒕 😒", show_alert=True)
             return
-        await query.answer(url=f"https://t.me/{temp.U_NAME}?start={mc}")
+        ident, file_id = query.data.split("#")
+        files_ = await get_file_details(file_id)
+        if not files_:
+            return await query.answer('Nᴏ sᴜᴄʜ ғɪʟᴇ ᴇxɪsᴛ.')
+        files = files_[0]
+        title = files.file_name
+        size = get_size(files.file_size)
+        f_caption = files.caption
+        if CUSTOM_FILE_CAPTION:
+            try:
+                f_caption = CUSTOM_FILE_CAPTION.format(file_name='' if title is None else title,
+                                                       file_size='' if size is None else size,
+                                                       file_caption='' if f_caption is None else f_caption)
+            except Exception as e:
+                logger.exception(e)
+                f_caption = f_caption
+        if f_caption is None:
+            f_caption = f"{title}"
+        await query.answer()
+        await client.send_cached_media(
+            chat_id=query.from_user.id,
+            file_id=file_id,
+            caption=f_caption,
+            protect_content=True if ident == 'checksubp' else False
+        )
     
     elif query.data == "pages":
         await query.answer()
