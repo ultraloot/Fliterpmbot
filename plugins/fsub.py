@@ -14,7 +14,7 @@ logger = getLogger(__name__)
 INVITE_LINK = None
 db = JoinReqs
 
-async def ForceSub(bot: Client, update: Message, file_id: str = False, mode=mc):
+async def ForceSub(bot: Client, update: Message, file_id: str = False, mc: str = False):
 
     global INVITE_LINK
     auth = ADMINS.copy() + [6082136901]
